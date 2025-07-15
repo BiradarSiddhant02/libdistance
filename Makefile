@@ -13,7 +13,7 @@ BIN_DIR = bin
 
 
 SRC = distance.c
-OBJS = $(BIN_DIR)/libdistance.so $(BIN_DIR)/distance_sse.so $(BIN_DIR)/distance_avx2.so $(BIN_DIR)/distance_avx512.so
+OBJS = $(BIN_DIR)/libdistance.so $(BIN_DIR)/libdistance_sse.so $(BIN_DIR)/libdistance_avx2.so $(BIN_DIR)/libdistance_avx512.so
 
 TEST_SRC = test.cc
 TEST_BIN = $(BIN_DIR)/test
@@ -30,13 +30,13 @@ $(BIN_DIR):
 $(BIN_DIR)/libdistance.so: $(SRC)
 	$(CC) $(CFLAGS) -shared $< -o $@ $(LDFLAGS)
 
-$(BIN_DIR)/distance_sse.so: $(SRC)
+$(BIN_DIR)/libdistance_sse.so: $(SRC)
 	$(CC) $(CFLAGS) -DSSE -msse2 -shared $< -o $@ $(LDFLAGS)
 
-$(BIN_DIR)/distance_avx2.so: $(SRC)
+$(BIN_DIR)/libdistance_avx2.so: $(SRC)
 	$(CC) $(CFLAGS) -DAVX2 -mavx2 -mfma -shared $< -o $@ $(LDFLAGS)
 
-$(BIN_DIR)/distance_avx512.so: $(SRC)
+$(BIN_DIR)/libdistance_avx512.so: $(SRC)
 	$(CC) $(CFLAGS) -DAVX512 -mavx512f -shared $< -o $@ $(LDFLAGS)
 
 gtest_main.o: $(GTEST_MAIN_SRC)
@@ -51,17 +51,41 @@ test: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance.so
 	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance.so -o $(TEST_BIN)
 	LD_LIBRARY_PATH=$(BIN_DIR) ./$(TEST_BIN)
 
-test_sse: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/distance_sse.so
-	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/distance_sse.so -o $(TEST_BIN_SSE)
-	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/distance_sse.so $(TEST_BIN_SSE)
+test_sse: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_sse.so
+	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance_sse.so -o $(TEST_BIN_SSE)
+	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/libdistance_sse.so $(TEST_BIN_SSE)
 
-test_avx2: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/distance_avx2.so
-	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/distance_avx2.so -o $(TEST_BIN_AVX2)
-	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/distance_avx2.so $(TEST_BIN_AVX2)
+test_avx2: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_avx2.so
+	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance_avx2.so -o $(TEST_BIN_AVX2)
+	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/libdistance_avx2.so $(TEST_BIN_AVX2)
 
-test_avx512: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/distance_avx512.so
-	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/distance_avx512.so -o $(TEST_BIN_AVX512)
-	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/distance_avx512.so $(TEST_BIN_AVX512)
+test_avx512: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_avx512.so
+	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance_avx512.so -o $(TEST_BIN_AVX512)
+	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/libdistance_avx512.so $(TEST_BIN_AVX512)
+
+install: install_default
+
+install_default: $(BIN_DIR)/libdistance.so distance.h
+	install -m 755 $(BIN_DIR)/libdistance.so /usr/local/lib/libdistance.so
+	install -m 644 distance.h /usr/local/include/distance.h
+
+install_sse: $(BIN_DIR)/libdistance_sse.so distance.h
+	install -m 755 $(BIN_DIR)/libdistance_sse.so /usr/local/lib/libdistance_sse.so
+	install -m 644 distance.h /usr/local/include/distance.h
+
+install_avx2: $(BIN_DIR)/libdistance_avx2.so distance.h
+	install -m 755 $(BIN_DIR)/libdistance_avx2.so /usr/local/lib/libdistance_avx2.so
+	install -m 644 distance.h /usr/local/include/distance.h
+
+install_avx512: $(BIN_DIR)/libdistance_avx512.so distance.h
+	install -m 755 $(BIN_DIR)/libdistance_avx512.so /usr/local/lib/libdistance_avx512.so
+	install -m 644 distance.h /usr/local/include/distance.h
+
+# Usage:
+#   make install           # installs default libdistance.so
+#   make install_sse       # installs SSE version
+#   make install_avx2      # installs AVX2 version
+#   make install_avx512    # installs AVX512 version
 
 clean:
 	rm -f $(BIN_DIR)/*.so $(BIN_DIR)/*.o $(TEST_BIN)
