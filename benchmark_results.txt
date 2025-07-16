@@ -1,3 +1,5 @@
+========================= X86_64 ==========================
+
 ubuntu@ip-172-31-31-155:~/libdistance$ make bench bench_sse bench_avx2 bench_avx512
 g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
                 benchmark.cc -o bin/bench \
@@ -95,3 +97,35 @@ bench_multi_euclidean_f64      30752 ns        30752 ns        22810
 bench_multi_euclidean_f32      20169 ns        20169 ns        34375
 bench_multi_manhattan_f64      30821 ns        30820 ns        22586
 bench_multi_manhattan_f32      20869 ns        20869 ns        33391
+
+========================== aarch64 ========================
+
+Raspberry Pi 3B+
+- 2 CPU
+- 1GB Memory
+
+sidd@pi:~/libdistance $ make bench
+g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
+		benchmark.cc -o bin/bench \
+		-lbenchmark -ldistance -lpthread -fopenmp -lm
+LD_LIBRARY_PATH=bin:third-party/benchmark/build/src ./bin/bench
+2025-07-16T23:00:07+01:00
+Running ./bin/bench
+Run on (4 X 1400 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 512 KiB (x1)
+Load Average: 0.87, 0.97, 0.83
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+bench_euclidean_f64             5914 ns         5914 ns       118152
+bench_euclidean_f32             2973 ns         2972 ns       235500
+bench_manhattan_f64             4439 ns         4438 ns       157736
+bench_manhattan_f32             2234 ns         2233 ns       313461
+bench_multi_euclidean_f64    7489613 ns      7484282 ns          100
+bench_multi_euclidean_f32    3723654 ns      3721304 ns          188
+bench_multi_manhattan_f64    5661346 ns      5653716 ns          124
+bench_multi_manhattan_f32    2423213 ns      2422072 ns          499
