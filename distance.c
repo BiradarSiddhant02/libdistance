@@ -91,9 +91,10 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         return sqrt(distance);
     #endif
 #elif defined (__aarch64__)
-    float64x2_t sum = vldq_f64(0.0);
+    float64x2_t sum = vdupq_n_f64(0.0);  // Initialize vector to [0.0, 0.0]
     size_t i = 0;
 
+    // SIMD loop: process 2 doubles at a time
     for (; i + 2 <= length; i += 2) {
         float64x2_t va = vld1q_f64(vec_a + i);
         float64x2_t vb = vld1q_f64(vec_b + i);
@@ -102,9 +103,11 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         sum = vaddq_f64(sum, sq);
     }
 
+    // Horizontal add to scalar
     double distance = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
 
-    for (; i < length; i++) {
+    // Handle remaining elements (odd length)
+    for (; i < length; ++i) {
         double diff = vec_a[i] - vec_b[i];
         distance += diff * diff;
     }
@@ -218,7 +221,7 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         return sqrtf(distance);
     #endif
 #elif defined (__aarch64__)
-    float32x4_t sum = vldq_f32(0.0);
+    float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize vector to [0.0, 0.0, 0.0, 0.0]
     size_t i = 0;
 
     for (; i + 4 <= length; i += 4) {
@@ -229,10 +232,12 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         sum = vaddq_f32(sum, sq);
     }
 
-    double distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1) +
-                      vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
+    // Horizontal add of 4 float lanes
+    float distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1)
+                   + vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
 
-    for (; i < length; i++) {
+    // Tail (scalar loop)
+    for (; i < length; ++i) {
         float diff = vec_a[i] - vec_b[i];
         distance += diff * diff;
     }
@@ -341,15 +346,15 @@ double manhattan_f64(const double* vec_a, const double* vec_b,
         return distance;
     #endif
 #elif defined (__aarch64__)
-    float64x2_t sum = vldq_f64(0.0);
+    float64x2_t sum = vdupq_n_f64(0.0);  // Correct initialization
     size_t i = 0;
 
-    for(; i + 2 <= length; i += 2) {
-        float64x2_t va = vldq1_f64(vec_a + i);
-        float64x2_t vb = vldq1_f64(vec_b + i);
+    for (; i + 2 <= length; i += 2) {
+        float64x2_t va = vld1q_f64(vec_a + i);
+        float64x2_t vb = vld1q_f64(vec_b + i);
         float64x2_t diff = vsubq_f64(va, vb);
-        float64x2_t abs = vabsq_f64(diff);
-        sum += vaddq_f64(sum, diff);
+        float64x2_t abs = vabsq_f64(diff);  // Use abs value
+        sum = vaddq_f64(sum, abs);          // Accumulate abs diffs
     }
 
     double result = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
@@ -467,21 +472,26 @@ float manhattan_f32(const float* vec_a, const float* vec_b,
         return distance;
     #endif
 #elif defined (__aarch64__)
-    float32x4_t sum = vldq_f32(0.0);
+    float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize all lanes to 0.0
     size_t i = 0;
 
-    for(; i + 4 <= length; i += 4) {
-        float32x2_t va = vldq1_f32(vec_a + i);
-        float32x2_t vb = vldq1_f32(vec_b + i);
-        float32x2_t diff = vsubq_f32(va, vb);
-        float32x2_t abs = vabsq_f32(diff);
-        sum += vaddq_f32(sum, diff);
+    for (; i + 4 <= length; i += 4) {
+        float32x4_t va = vld1q_f32(vec_a + i);
+        float32x4_t vb = vld1q_f32(vec_b + i);
+        float32x4_t diff = vsubq_f32(va, vb);
+        float32x4_t abs = vabsq_f32(diff);
+        sum = vaddq_f32(sum, abs);
     }
 
-    float result = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1);
+    // Horizontal add of 4 lanes
+    float result = vgetq_lane_f32(sum, 0) +
+                   vgetq_lane_f32(sum, 1) +
+                   vgetq_lane_f32(sum, 2) +
+                   vgetq_lane_f32(sum, 3);
 
+    // Scalar remainder
     for (; i < length; ++i) {
-        result += fabs(vec_a[i] - vec_b[i]);
+        result += fabsf(vec_a[i] - vec_b[i]);
     }
 
     return result;
