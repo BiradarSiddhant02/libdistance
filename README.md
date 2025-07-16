@@ -1,5 +1,5 @@
 # libdistance
-Library for calculating distance between N-dimensional vectors. Supports all x86 SIMD instructions
+Library for calculating distance between N-dimensional vectors. Supports all x86 SIMD instructions and ARM (aarch64) portable mode.
 
 ## Build and Test steps
 ### Step I. **Download google-test**
@@ -14,20 +14,25 @@ cd ..
 # It is important to build the library before the test
 make clean all
 
-# Build tests
+# On x86_64 (Intel/AMD):
 make test test_sse test_avx2 test_avx512
+# On ARM (aarch64):
+make test
 ```
 
 ### Step III. **Build Benchmark**
 ```bash
+# On x86_64:
 make bench bench_sse bench_avx2 bench_avx512
+# On ARM (aarch64):
+make bench
 ```
 
 ### Step IV. **Run Tests**
 ```bash
 # Run the default (portable) test
 ./bin/test
-# Run SSE, AVX2, AVX512 tests
+# On x86_64, run SIMD tests:
 ./bin/test_sse
 ./bin/test_avx2
 ./bin/test_avx512
@@ -37,7 +42,7 @@ make bench bench_sse bench_avx2 bench_avx512
 ```bash
 # Run the default (portable) benchmark
 ./bin/bench
-# Run SSE, AVX2, AVX512 benchmarks
+# On x86_64, run SIMD benchmarks:
 ./bin/bench_sse
 ./bin/bench_avx2
 ./bin/bench_avx512
@@ -47,12 +52,12 @@ make bench bench_sse bench_avx2 bench_avx512
 ```bash
 # Install default (portable) version
 sudo make install
-# Install SSE, AVX2, AVX512 versions
+# On x86_64, install SIMD versions
 sudo make install_sse
 sudo make install_avx2
 sudo make install_avx512
 ```
-- Libraries are installed to `/usr/local/lib` as `libdistance.so`, `libdistance_sse.so`, `libdistance_avx2.so`, `libdistance_avx512.so`
+- Libraries are installed to `/usr/local/lib` as `libdistance.so` (and `libdistance_sse.so`, `libdistance_avx2.so`, `libdistance_avx512.so` on x86_64)
 - Header is installed to `/usr/local/include/distance.h`
 
 ## API Reference
@@ -70,7 +75,8 @@ sudo make install_avx512
 - `float**  multi_manhattan_f32(const float** a, const float** b, size_t len, size_t M, size_t N, size_t n_threads);`
 
 ## Features
-- High-performance SIMD (SSE, AVX2, AVX512) and OpenMP parallelism
+- High-performance SIMD (SSE, AVX2, AVX512) and OpenMP parallelism (x86_64)
+- Portable and optimized implementation for ARM (aarch64)
 - Accurate and fast distance calculations for float and double
 - Multi-vector (batch) distance computation
 - GoogleTest-based unit tests for all functions

@@ -1,5 +1,10 @@
-CC = gcc
 
+# Detect architecture
+UNAME_ARCH := $(shell uname -m)
+IS_X86_64 := $(filter x86_64,$(UNAME_ARCH))
+IS_AARCH64 := $(filter aarch64,$(UNAME_ARCH))
+
+CC = gcc
 CXX = g++
 CFLAGS = -Wall -Wextra -fPIC -O3 -std=c11 -fopenmp
 CXXFLAGS = -Wall -Wextra -O3 -std=c++17 -fopenmp
@@ -12,8 +17,14 @@ GTEST_OBJS = $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o
 BIN_DIR = bin
 
 
+
 SRC = distance.c
+
+ifeq ($(IS_X86_64),x86_64)
 OBJS = $(BIN_DIR)/libdistance.so $(BIN_DIR)/libdistance_sse.so $(BIN_DIR)/libdistance_avx2.so $(BIN_DIR)/libdistance_avx512.so
+else
+OBJS = $(BIN_DIR)/libdistance.so
+endif
 
 TEST_SRC = test.cc
 TEST_BIN = $(BIN_DIR)/test
@@ -21,15 +32,18 @@ TEST_BIN_SSE = $(BIN_DIR)/test_sse
 TEST_BIN_AVX2 = $(BIN_DIR)/test_avx2
 TEST_BIN_AVX512 = $(BIN_DIR)/test_avx512
 
+
 all: $(BIN_DIR) $(OBJS)
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 
+
 $(BIN_DIR)/libdistance.so: $(SRC)
 	$(CC) $(CFLAGS) -shared $< -o $@ $(LDFLAGS)
 
+ifeq ($(IS_X86_64),x86_64)
 $(BIN_DIR)/libdistance_sse.so: $(SRC)
 	$(CC) $(CFLAGS) -DSSE -msse2 -shared $< -o $@ $(LDFLAGS)
 
@@ -38,6 +52,7 @@ $(BIN_DIR)/libdistance_avx2.so: $(SRC)
 
 $(BIN_DIR)/libdistance_avx512.so: $(SRC)
 	$(CC) $(CFLAGS) -DAVX512 -mavx512f -shared $< -o $@ $(LDFLAGS)
+endif
 
 gtest_main.o: $(GTEST_MAIN_SRC)
 
@@ -47,10 +62,12 @@ $(BIN_DIR)/gtest-all.o: $(GTEST_SRC) | $(BIN_DIR)
 $(BIN_DIR)/gtest_main.o: $(GTEST_MAIN_SRC) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest $< -c -o $@
 
+
 test: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance.so
 	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance.so -o $(TEST_BIN)
 	LD_LIBRARY_PATH=$(BIN_DIR) ./$(TEST_BIN)
 
+ifeq ($(IS_X86_64),x86_64)
 test_sse: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_sse.so
 	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance_sse.so -o $(TEST_BIN_SSE)
 	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/libdistance_sse.so $(TEST_BIN_SSE)
@@ -62,6 +79,8 @@ test_avx2: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_avx2.so
 test_avx512: $(GTEST_OBJS) $(TEST_SRC) $(BIN_DIR)/libdistance_avx512.so
 	$(CXX) $(CXXFLAGS) -Ithird-party/googletest/googletest/include -Ithird-party/googletest/googletest -L$(BIN_DIR) -ldistance -lpthread -fopenmp -lm $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o $(TEST_SRC) $(BIN_DIR)/libdistance_avx512.so -o $(TEST_BIN_AVX512)
 	LD_LIBRARY_PATH=$(BIN_DIR) LD_PRELOAD=$(BIN_DIR)/libdistance_avx512.so $(TEST_BIN_AVX512)
+endif
+
 
 install: install_default
 
@@ -69,6 +88,7 @@ install_default: $(BIN_DIR)/libdistance.so distance.h
 	install -m 755 $(BIN_DIR)/libdistance.so /usr/local/lib/libdistance.so
 	install -m 644 distance.h /usr/local/include/distance.h
 
+ifeq ($(IS_X86_64),x86_64)
 install_sse: $(BIN_DIR)/libdistance_sse.so distance.h
 	install -m 755 $(BIN_DIR)/libdistance_sse.so /usr/local/lib/libdistance_sse.so
 	install -m 644 distance.h /usr/local/include/distance.h
@@ -80,6 +100,7 @@ install_avx2: $(BIN_DIR)/libdistance_avx2.so distance.h
 install_avx512: $(BIN_DIR)/libdistance_avx512.so distance.h
 	install -m 755 $(BIN_DIR)/libdistance_avx512.so /usr/local/lib/libdistance_avx512.so
 	install -m 644 distance.h /usr/local/include/distance.h
+endif
 
 # Usage:
 #   make install           # installs default libdistance.so
@@ -93,12 +114,14 @@ BENCH_BIN_SSE = $(BIN_DIR)/bench_sse
 BENCH_BIN_AVX2 = $(BIN_DIR)/bench_avx2
 BENCH_BIN_AVX512 = $(BIN_DIR)/bench_avx512
 
+
 bench: $(BENCH_SRC) $(BIN_DIR)/libdistance.so
 		$(CXX) $(CXXFLAGS) -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
 			$(BENCH_SRC) -o $(BENCH_BIN) \
 			-lbenchmark -ldistance -lpthread -fopenmp -lm
 		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src ./$(BENCH_BIN)
 
+ifeq ($(IS_X86_64),x86_64)
 bench_sse: $(BENCH_SRC) $(BIN_DIR)/libdistance_sse.so
 		$(CXX) $(CXXFLAGS) -DSSE -msse2 -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
 			$(BENCH_SRC) -o $(BENCH_BIN_SSE) \
@@ -116,6 +139,7 @@ bench_avx512: $(BENCH_SRC) $(BIN_DIR)/libdistance_avx512.so
 			$(BENCH_SRC) -o $(BENCH_BIN_AVX512) \
 			-lbenchmark -ldistance -lpthread -fopenmp -lm
 		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src LD_PRELOAD=$(BIN_DIR)/libdistance_avx512.so ./$(BENCH_BIN_AVX512)
+endif
 
 
 clean:

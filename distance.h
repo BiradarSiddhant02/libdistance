@@ -1,9 +1,26 @@
-#include <immintrin.h>
-#include <xmmintrin.h>
-#include <emmintrin.h>
+#ifndef DISTANCE_H
+#define DISTANCE_H
+
+#if defined(__x86_64__)
+    #if defined(SSE) || defined(AVX2) || defined(AVX512)
+        #include <immintrin.h>
+    #endif
+#elif defined(__aarch64__)
+    #include <arm_neon.h>
+#else
+    #warning "SIMD not enabled or unsupported architecture."
+#endif
+
+
+#include <stdlib.h>
+#include <stddef.h>
 #include <math.h>
 #include <omp.h>
 
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 /** 
  * @brief Function to calculate euclidean distance between two 
  * vectors at 64 bit precision.
@@ -110,4 +127,9 @@ double** multi_manhattan_f64(const double**, const double**, const size_t,
  * @return 2D grid of distance between M and N vectors
  */
 float** multi_manhattan_f32(const float**, const float**, const size_t,
-                             const size_t, const size_t, const size_t);
+                            const size_t, const size_t, const size_t);
+#ifdef __cplusplus
+}
+#endif
+
+#endif // DISTANCE_H
