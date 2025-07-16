@@ -1,0 +1,97 @@
+ubuntu@ip-172-31-31-155:~/libdistance$ make bench bench_sse bench_avx2 bench_avx512
+g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
+                benchmark.cc -o bin/bench \
+                -lbenchmark -ldistance -lpthread -fopenmp -lm
+LD_LIBRARY_PATH=bin:third-party/benchmark/build/src ./bin/bench
+2025-07-16T16:46:12+00:00
+Running ./bin/bench
+Run on (16 X 3603.61 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1024 KiB (x8)
+  L3 Unified 36608 KiB (x1)
+Load Average: 3.88, 1.35, 0.52
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+bench_euclidean_f64             1130 ns         1130 ns       619706
+bench_euclidean_f32             1121 ns         1121 ns       624205
+bench_manhattan_f64             1132 ns         1132 ns       618370
+bench_manhattan_f32             1123 ns         1123 ns       623136
+bench_multi_euclidean_f64      81076 ns        81073 ns         8600
+bench_multi_euclidean_f32      81241 ns        81237 ns         8629
+bench_multi_manhattan_f64      82179 ns        82176 ns         8543
+bench_multi_manhattan_f32      81234 ns        81233 ns         8618
+g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -DSSE -msse2 -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
+                benchmark.cc -o bin/bench_sse \
+                -lbenchmark -ldistance -lpthread -fopenmp -lm
+LD_LIBRARY_PATH=bin:third-party/benchmark/build/src LD_PRELOAD=bin/libdistance_sse.so ./bin/bench_sse
+2025-07-16T16:46:20+00:00
+Running ./bin/bench_sse
+Run on (16 X 2999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1024 KiB (x8)
+  L3 Unified 36608 KiB (x1)
+Load Average: 4.85, 1.60, 0.61
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+bench_euclidean_f64              564 ns          564 ns      1239547
+bench_euclidean_f32              277 ns          277 ns      2525526
+bench_manhattan_f64              566 ns          566 ns      1237888
+bench_manhattan_f32              281 ns          281 ns      2494117
+bench_multi_euclidean_f64      62452 ns        62451 ns        11195
+bench_multi_euclidean_f32      26758 ns        26757 ns        26136
+bench_multi_manhattan_f64      47674 ns        47674 ns        14768
+bench_multi_manhattan_f32      29335 ns        29334 ns        23968
+g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -DAVX2 -mavx2 -mfma -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
+                benchmark.cc -o bin/bench_avx2 \
+                -lbenchmark -ldistance -lpthread -fopenmp -lm
+LD_LIBRARY_PATH=bin:third-party/benchmark/build/src LD_PRELOAD=bin/libdistance_avx2.so ./bin/bench_avx2
+2025-07-16T16:46:29+00:00
+Running ./bin/bench_avx2
+Run on (16 X 2999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1024 KiB (x8)
+  L3 Unified 36608 KiB (x1)
+Load Average: 5.46, 1.83, 0.69
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+bench_euclidean_f64              329 ns          329 ns      2124341
+bench_euclidean_f32              164 ns          164 ns      4278182
+bench_manhattan_f64              331 ns          331 ns      2114154
+bench_manhattan_f32              165 ns          165 ns      4243883
+bench_multi_euclidean_f64      36284 ns        36283 ns        19558
+bench_multi_euclidean_f32      21813 ns        21812 ns        31795
+bench_multi_manhattan_f64      33764 ns        33764 ns        20253
+bench_multi_manhattan_f32      21985 ns        21984 ns        31766
+g++ -Wall -Wextra -O3 -std=c++17 -fopenmp -DAVX512 -mavx512f -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -Lbin \
+                benchmark.cc -o bin/bench_avx512 \
+                -lbenchmark -ldistance -lpthread -fopenmp -lm
+LD_LIBRARY_PATH=bin:third-party/benchmark/build/src LD_PRELOAD=bin/libdistance_avx512.so ./bin/bench_avx512
+2025-07-16T16:46:39+00:00
+Running ./bin/bench_avx512
+Run on (16 X 2999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1024 KiB (x8)
+  L3 Unified 36608 KiB (x1)
+Load Average: 5.97, 2.05, 0.78
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+bench_euclidean_f64              193 ns          193 ns      3636001
+bench_euclidean_f32             96.1 ns         96.1 ns      7278267
+bench_manhattan_f64              188 ns          188 ns      3719132
+bench_manhattan_f32             91.6 ns         91.6 ns      7650618
+bench_multi_euclidean_f64      30752 ns        30752 ns        22810
+bench_multi_euclidean_f32      20169 ns        20169 ns        34375
+bench_multi_manhattan_f64      30821 ns        30820 ns        22586
+bench_multi_manhattan_f32      20869 ns        20869 ns        33391
