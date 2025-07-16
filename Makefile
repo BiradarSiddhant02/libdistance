@@ -87,7 +87,38 @@ install_avx512: $(BIN_DIR)/libdistance_avx512.so distance.h
 #   make install_avx2      # installs AVX2 version
 #   make install_avx512    # installs AVX512 version
 
+BENCH_SRC = benchmark.cc
+BENCH_BIN = $(BIN_DIR)/bench
+BENCH_BIN_SSE = $(BIN_DIR)/bench_sse
+BENCH_BIN_AVX2 = $(BIN_DIR)/bench_avx2
+BENCH_BIN_AVX512 = $(BIN_DIR)/bench_avx512
+
+bench: $(BENCH_SRC) $(BIN_DIR)/libdistance.so
+		$(CXX) $(CXXFLAGS) -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
+			$(BENCH_SRC) -o $(BENCH_BIN) \
+			-lbenchmark -ldistance -lpthread -fopenmp -lm
+		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src ./$(BENCH_BIN)
+
+bench_sse: $(BENCH_SRC) $(BIN_DIR)/libdistance_sse.so
+		$(CXX) $(CXXFLAGS) -DSSE -msse2 -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
+			$(BENCH_SRC) -o $(BENCH_BIN_SSE) \
+			-lbenchmark -ldistance -lpthread -fopenmp -lm
+		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src LD_PRELOAD=$(BIN_DIR)/libdistance_sse.so ./$(BENCH_BIN_SSE)
+
+bench_avx2: $(BENCH_SRC) $(BIN_DIR)/libdistance_avx2.so
+		$(CXX) $(CXXFLAGS) -DAVX2 -mavx2 -mfma -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
+			$(BENCH_SRC) -o $(BENCH_BIN_AVX2) \
+			-lbenchmark -ldistance -lpthread -fopenmp -lm
+		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src LD_PRELOAD=$(BIN_DIR)/libdistance_avx2.so ./$(BENCH_BIN_AVX2)
+
+bench_avx512: $(BENCH_SRC) $(BIN_DIR)/libdistance_avx512.so
+		$(CXX) $(CXXFLAGS) -DAVX512 -mavx512f -Ithird-party/benchmark/include -Lthird-party/benchmark/build/src -L$(BIN_DIR) \
+			$(BENCH_SRC) -o $(BENCH_BIN_AVX512) \
+			-lbenchmark -ldistance -lpthread -fopenmp -lm
+		LD_LIBRARY_PATH=$(BIN_DIR):third-party/benchmark/build/src LD_PRELOAD=$(BIN_DIR)/libdistance_avx512.so ./$(BENCH_BIN_AVX512)
+
+
 clean:
-	rm -f $(BIN_DIR)/*.so $(BIN_DIR)/*.o $(TEST_BIN)
+	rm -rf bin
 
 .PHONY: all clean test
