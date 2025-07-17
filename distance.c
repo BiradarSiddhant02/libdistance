@@ -1,3 +1,8 @@
+#include <stdlib.h>
+#include <stddef.h>
+#include <math.h>
+#include <omp.h>
+
 #include "distance.h"
 
 double euclidean_f64(const double* vec_a, const double* vec_b, 
