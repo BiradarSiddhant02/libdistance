@@ -11,14 +11,7 @@
     #warning "SIMD not enabled or unsupported architecture."
 #endif
 
-
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
-#include <omp.h>
-
-
-#ifdef __cplusplus
+#if defined (__cplusplus)
 extern "C"{
 #endif
 /** 
@@ -27,6 +20,7 @@ extern "C"{
  *
  * @param vec_a (const double*) vector A
  * @param vec_b (const double*) vector B
+ * @param length (const size_t) Length of vectors
  *
  * @return distance between Vector A and Vector B
  */
@@ -38,6 +32,7 @@ double euclidean_f64(const double*, const double*, const size_t);
  *
  * @param vec_a (const float*) Vector A
  * @param vec_b (const float*) Vector B
+ * @param length (const size_t) Length of vectors
  *
  * @return distance between Vector A and Vector B
  */
@@ -49,6 +44,7 @@ float euclidean_f32(const float*, const float*, const size_t);
  *
  * @param vec_a (const double*) Vector A
  * @param vec_b (const double*) Vector B
+ * @param length (const size_t) Length of vectors
  *
  * @return distance between Vector A and Vector B
  */
@@ -60,6 +56,7 @@ double manhattan_f64(const double*, const double*, const size_t);
  *
  * @param vec_a (const float*) Vector A
  * @param vec_b (const float*) Vector B
+ * @param length (const size_t) Length of vectors
  *
  * @return distance between Vector A and Vector B
  */
@@ -128,7 +125,7 @@ double** multi_manhattan_f64(const double**, const double**, const size_t,
  */
 float** multi_manhattan_f32(const float**, const float**, const size_t,
                             const size_t, const size_t, const size_t);
-#ifdef __cplusplus
+#if defined (__cplusplus)
 }
 #endif
 
