@@ -9,8 +9,8 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
                      const size_t length){
 #if defined (__x86_64__)
     #if defined (SSE)
-        __m128d sum = _mm_setzero_pd();
-        size_t i = 0;
+        register __m128d sum = _mm_setzero_pd();
+        register size_t i = 0;
 
         for(; i + 2 <= length; i += 2){
             __m128d va = _mm_loadu_pd(vec_a + i);
@@ -34,8 +34,8 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         return sqrt(distance);
 
     #elif defined (AVX2)
-        __m256d sum = _mm256_setzero_pd();
-        size_t i = 0;
+        register __m256d sum = _mm256_setzero_pd();
+        register size_t i = 0;
 
         for(; i + 4 <= length; i += 4) {
             __m256d va = _mm256_loadu_pd(vec_a + i);
@@ -62,8 +62,8 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         return sqrt(distance);
 
     #elif defined (AVX512)
-        __m512d sum = _mm512_setzero_pd();
-        size_t i = 0;
+        register __m512d sum = _mm512_setzero_pd();
+        register size_t i = 0;
 
         for (; i + 8 <= length; i += 8) {
             __m512d va = _mm512_loadu_pd(vec_a + i);
@@ -96,8 +96,8 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         return sqrt(distance);
     #endif
 #elif defined (__aarch64__)
-    float64x2_t sum = vdupq_n_f64(0.0);  // Initialize vector to [0.0, 0.0]
-    size_t i = 0;
+    register float64x2_t sum = vdupq_n_f64(0.0);  // Initialize vector to [0.0, 0.0]
+    register size_t i = 0;
 
     // SIMD loop: process 2 doubles at a time
     for (; i + 2 <= length; i += 2) {
@@ -135,8 +135,8 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
                      const size_t length){
 #if defined (__x86_64__)
     #if defined (SSE)
-        __m128 sum = _mm_setzero_ps();
-        size_t i = 0;
+        register __m128 sum = _mm_setzero_ps();
+        register size_t i = 0;
 
         for(; i + 4 <= length; i += 4){
             __m128 va = _mm_loadu_ps(vec_a + i);
@@ -162,8 +162,8 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         return sqrtf(distance);
 
     #elif defined (AVX2)
-        __m256 sum = _mm256_setzero_ps();
-        size_t i = 0;
+        register __m256 sum = _mm256_setzero_ps();
+        register size_t i = 0;
 
         for(; i + 8 <= length; i += 8) {
             __m256 va = _mm256_loadu_ps(vec_a + i);
@@ -192,8 +192,8 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         return sqrtf(distance);
 
     #elif defined (AVX512)
-        __m512 sum = _mm512_setzero_ps();
-        size_t i = 0;
+        register __m512 sum = _mm512_setzero_ps();
+        register size_t i = 0;
 
         for (; i + 16 <= length; i += 16) {
             __m512 va = _mm512_loadu_ps(vec_a + i);
@@ -226,8 +226,8 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         return sqrtf(distance);
     #endif
 #elif defined (__aarch64__)
-    float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize vector to [0.0, 0.0, 0.0, 0.0]
-    size_t i = 0;
+    register float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize vector to [0.0, 0.0, 0.0, 0.0]
+    register size_t i = 0;
 
     for (; i + 4 <= length; i += 4) {
         float32x4_t va = vld1q_f32(vec_a + i);
@@ -264,8 +264,8 @@ double manhattan_f64(const double* vec_a, const double* vec_b,
                      const size_t length){
 #if defined (__x86_64__)
     #if defined (SSE)
-        __m128d sum = _mm_setzero_pd();
-        size_t i = 0;
+        register __m128d sum = _mm_setzero_pd();
+        register size_t i = 0;
 
         for(; i + 2 <= length; i += 2){
             __m128d va = _mm_loadu_pd(vec_a + i);
@@ -289,8 +289,8 @@ double manhattan_f64(const double* vec_a, const double* vec_b,
         return distance;
 
     #elif defined (AVX2)
-        __m256d sum = _mm256_setzero_pd();
-        size_t i = 0;
+        register __m256d sum = _mm256_setzero_pd();
+        register size_t i = 0;
 
         for(; i + 4 <= length; i += 4) {
             __m256d va = _mm256_loadu_pd(vec_a + i);
@@ -317,8 +317,8 @@ double manhattan_f64(const double* vec_a, const double* vec_b,
         return distance;
 
     #elif defined (AVX512)
-        __m512d sum = _mm512_setzero_pd();
-        size_t i = 0;
+        register __m512d sum = _mm512_setzero_pd();
+        register size_t i = 0;
 
         for (; i + 8 <= length; i += 8) {
             __m512d va = _mm512_loadu_pd(vec_a + i);
@@ -351,8 +351,8 @@ double manhattan_f64(const double* vec_a, const double* vec_b,
         return distance;
     #endif
 #elif defined (__aarch64__)
-    float64x2_t sum = vdupq_n_f64(0.0);  // Correct initialization
-    size_t i = 0;
+    register float64x2_t sum = vdupq_n_f64(0.0);  // Correct initialization
+    register size_t i = 0;
 
     for (; i + 2 <= length; i += 2) {
         float64x2_t va = vld1q_f64(vec_a + i);
@@ -386,8 +386,8 @@ float manhattan_f32(const float* vec_a, const float* vec_b,
                     const size_t length){
 #if defined (__x86_64__)
     #if defined (SSE)
-        __m128 sum = _mm_setzero_ps();
-        size_t i = 0;
+        register __m128 sum = _mm_setzero_ps();
+        register size_t i = 0;
 
         for(; i + 4 <= length; i += 4){
             __m128 va = _mm_loadu_ps(vec_a + i);
@@ -413,8 +413,8 @@ float manhattan_f32(const float* vec_a, const float* vec_b,
         return distance;
 
     #elif defined (AVX2)
-        __m256 sum = _mm256_setzero_ps();
-        size_t i = 0;
+        register __m256 sum = _mm256_setzero_ps();
+        register size_t i = 0;
 
         for(; i + 8 <= length; i += 8) {
             __m256 va = _mm256_loadu_ps(vec_a + i);
@@ -443,8 +443,8 @@ float manhattan_f32(const float* vec_a, const float* vec_b,
         return distance;
 
     #elif defined (AVX512)
-        __m512 sum = _mm512_setzero_ps();
-        size_t i = 0;
+        register __m512 sum = _mm512_setzero_ps();
+        register size_t i = 0;
 
         for (; i + 16 <= length; i += 16) {
             __m512 va = _mm512_loadu_ps(vec_a + i);
@@ -477,8 +477,8 @@ float manhattan_f32(const float* vec_a, const float* vec_b,
         return distance;
     #endif
 #elif defined (__aarch64__)
-    float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize all lanes to 0.0
-    size_t i = 0;
+    register float32x4_t sum = vdupq_n_f32(0.0f);  // Initialize all lanes to 0.0
+    register size_t i = 0;
 
     for (; i + 4 <= length; i += 4) {
         float32x4_t va = vld1q_f32(vec_a + i);
