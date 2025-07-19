@@ -63,6 +63,52 @@ double manhattan_f64(const double*, const double*, const size_t);
 float manhattan_f32(const float*, const float*, const size_t);
 
 /**
+ * @brief Function to calculate dot product between two
+ * vectors in 64 bit precision.
+ * 
+ * @param vec_a (const double*) Vector A
+ * @param vec_b (const double*) Vector B
+ * @param length (const size_t) Length of vectors
+ * 
+ * @return Dot product of two vectors
+ */
+double dot_product_f64(const double*, const double*, const size_t);
+
+/**
+ * @brief Function to calculate dot product between two
+ * vectors in 32 bit precision.
+ * 
+ * @param vec_a (const float*) Vector A
+ * @param vec_b (const float*) Vector B
+ * @param length (const size_t) Length of vectors
+ * 
+ * @return Dot product of two vectors
+ */
+float dot_product_f32(const float*, const float*, const size_t);
+
+/**
+ * @brief Function to calculate norm of a vector at
+ * 64 bit precision
+ * 
+ * @param vec (const double*) Vector
+ * @param length (const size_t) length of vector
+ * 
+ * @return norm of the vector
+ */
+double norm_f64(const double*, const size_t);
+
+/**
+ * @brief Function to calculate norm of a vector at
+ * 32 bit precision
+ * 
+ * @param vec (const float*) Vector
+ * @param length (const size_t) length of vector
+ * 
+ * @return norm of the vector
+ */
+float norm_f32(const float*, const size_t);
+
+/**
  * @brief Function to calculate euclidean distance between M and N vectors
  * with 64 bit precision
  * 
