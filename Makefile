@@ -142,7 +142,46 @@ bench_avx512: $(BENCH_SRC) $(BIN_DIR)/libdistance_avx512.so
 endif
 
 
+help:
+	@echo "libdistance - High-performance vector distance library"
+	@echo ""
+	@echo "Architecture: $(UNAME_ARCH)"
+ifeq ($(IS_X86_64),x86_64)
+	@echo "SIMD support: SSE, AVX2, AVX512 available"
+else ifeq ($(IS_AARCH64),aarch64)
+	@echo "SIMD support: ARM NEON (portable mode)"
+else
+	@echo "SIMD support: Portable mode only"
+endif
+	@echo ""
+	@echo "Available targets:"
+	@echo "  all              - Build all libraries for this architecture"
+	@echo "  test             - Build and run portable tests"
+ifeq ($(IS_X86_64),x86_64)
+	@echo "  test_sse         - Build and run SSE tests"
+	@echo "  test_avx2        - Build and run AVX2 tests"
+	@echo "  test_avx512      - Build and run AVX512 tests"
+endif
+	@echo "  bench            - Build and run portable benchmarks"
+ifeq ($(IS_X86_64),x86_64)
+	@echo "  bench_sse        - Build and run SSE benchmarks"
+	@echo "  bench_avx2       - Build and run AVX2 benchmarks"
+	@echo "  bench_avx512     - Build and run AVX512 benchmarks"
+endif
+	@echo "  install          - Install portable library and header"
+ifeq ($(IS_X86_64),x86_64)
+	@echo "  install_sse      - Install SSE library and header"
+	@echo "  install_avx2     - Install AVX2 library and header"
+	@echo "  install_avx512   - Install AVX512 library and header"
+endif
+	@echo "  clean            - Remove all build artifacts"
+	@echo "  help             - Show this help message"
+	@echo ""
+	@echo "Requirements:"
+	@echo "  - GoogleTest: third-party/googletest/"
+	@echo "  - Google Benchmark: third-party/benchmark/"
+
 clean:
 	rm -rf bin
 
-.PHONY: all clean test
+.PHONY: all clean test help
