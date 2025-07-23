@@ -60,6 +60,35 @@ precT expected_manhattan(const std::vector<precT>& A, const std::vector<precT>& 
 }
 
 template <typename precT>
+precT expected_dot_product(const std::vector<precT>& A, const std::vector<precT>& B) {
+    precT dot_product = static_cast<precT>(0.0);
+    for (size_t i = 0; i < A.size(); i++) {
+        dot_product += A[i] * B[i];
+    }
+    return dot_product;
+}
+
+template <typename precT>
+precT expected_norm(const std::vector<precT>& A) {
+    precT norm = static_cast<precT>(0.0);
+    for (size_t i = 0; i < A.size(); i++) {
+        norm += A[i] * A[i];
+    }
+    return static_cast<precT>(std::sqrt(norm));
+}
+
+template <typename precT>
+precT expected_cosine_similarity(const std::vector<precT>& A, const std::vector<precT>& B) {
+    precT dot_product = expected_dot_product(A, B);
+    precT norm_a = expected_norm(A);
+    precT norm_b = expected_norm(B);
+    if (norm_a == static_cast<precT>(0.0) || norm_b == static_cast<precT>(0.0)) {
+        return static_cast<precT>(0.0);
+    }
+    return dot_product / (norm_a * norm_b);
+}
+
+template <typename precT>
 void test_euclidean_accuracy() {
     static const size_t length = 128;
     std::vector<precT> A = random_vec<precT>(length);
@@ -85,6 +114,50 @@ void test_manhattan_accuracy() {
         actual = manhattan_f32(A.data(), B.data(), length);
     } else {
         actual = manhattan_f64(A.data(), B.data(), length);
+    }
+    ASSERT_NEAR(expected, actual, static_cast<precT>(1e-4));
+}
+
+template <typename precT>
+void test_dot_product_accuracy() {
+    static const size_t length = 128;
+    std::vector<precT> A = random_vec<precT>(length);
+    std::vector<precT> B = random_vec<precT>(length);
+    precT expected = expected_dot_product(A, B);
+    precT actual;
+    if constexpr (std::is_same<precT, float>::value) {
+        actual = dot_product_f32(A.data(), B.data(), length);
+    } else {
+        actual = dot_product_f64(A.data(), B.data(), length);
+    }
+    ASSERT_NEAR(expected, actual, static_cast<precT>(1e-4));
+}
+
+template <typename precT>
+void test_norm_accuracy() {
+    static const size_t length = 128;
+    std::vector<precT> A = random_vec<precT>(length);
+    precT expected = expected_norm(A);
+    precT actual;
+    if constexpr (std::is_same<precT, float>::value) {
+        actual = norm_f32(A.data(), length);
+    } else {
+        actual = norm_f64(A.data(), length);
+    }
+    ASSERT_NEAR(expected, actual, static_cast<precT>(1e-4));
+}
+
+template <typename precT>
+void test_cosine_similarity_accuracy() {
+    static const size_t length = 128;
+    std::vector<precT> A = random_vec<precT>(length);
+    std::vector<precT> B = random_vec<precT>(length);
+    precT expected = expected_cosine_similarity(A, B);
+    precT actual;
+    if constexpr (std::is_same<precT, float>::value) {
+        actual = cosine_similarity_f32(A.data(), B.data(), length);
+    } else {
+        actual = cosine_similarity_f64(A.data(), B.data(), length);
     }
     ASSERT_NEAR(expected, actual, static_cast<precT>(1e-4));
 }
@@ -148,6 +221,12 @@ TEST(TestDistanceSSE, EuclideanF32) { test_euclidean_accuracy<float>(); }
 TEST(TestDistanceSSE, EuclideanF64) { test_euclidean_accuracy<double>(); }
 TEST(TestDistanceSSE, ManhattanF32) { test_manhattan_accuracy<float>(); }
 TEST(TestDistanceSSE, ManhattanF64) { test_manhattan_accuracy<double>(); }
+TEST(TestDistanceSSE, DotProductF32) { test_dot_product_accuracy<float>(); }
+TEST(TestDistanceSSE, DotProductF64) { test_dot_product_accuracy<double>(); }
+TEST(TestDistanceSSE, NormF32) { test_norm_accuracy<float>(); }
+TEST(TestDistanceSSE, NormF64) { test_norm_accuracy<double>(); }
+TEST(TestDistanceSSE, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
+TEST(TestDistanceSSE, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
 TEST(TestDistanceSSE, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceSSE, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceSSE, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -157,6 +236,12 @@ TEST(TestDistanceAVX2, EuclideanF32) { test_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX2, EuclideanF64) { test_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX2, ManhattanF32) { test_manhattan_accuracy<float>(); }
 TEST(TestDistanceAVX2, ManhattanF64) { test_manhattan_accuracy<double>(); }
+TEST(TestDistanceAVX2, DotProductF32) { test_dot_product_accuracy<float>(); }
+TEST(TestDistanceAVX2, DotProductF64) { test_dot_product_accuracy<double>(); }
+TEST(TestDistanceAVX2, NormF32) { test_norm_accuracy<float>(); }
+TEST(TestDistanceAVX2, NormF64) { test_norm_accuracy<double>(); }
+TEST(TestDistanceAVX2, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
+TEST(TestDistanceAVX2, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
 TEST(TestDistanceAVX2, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX2, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX2, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -166,6 +251,12 @@ TEST(TestDistanceAVX512, EuclideanF32) { test_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX512, EuclideanF64) { test_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX512, ManhattanF32) { test_manhattan_accuracy<float>(); }
 TEST(TestDistanceAVX512, ManhattanF64) { test_manhattan_accuracy<double>(); }
+TEST(TestDistanceAVX512, DotProductF32) { test_dot_product_accuracy<float>(); }
+TEST(TestDistanceAVX512, DotProductF64) { test_dot_product_accuracy<double>(); }
+TEST(TestDistanceAVX512, NormF32) { test_norm_accuracy<float>(); }
+TEST(TestDistanceAVX512, NormF64) { test_norm_accuracy<double>(); }
+TEST(TestDistanceAVX512, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
+TEST(TestDistanceAVX512, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
 TEST(TestDistanceAVX512, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX512, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX512, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -175,6 +266,12 @@ TEST(TestDistanceDefault, EuclideanF32) { test_euclidean_accuracy<float>(); }
 TEST(TestDistanceDefault, EuclideanF64) { test_euclidean_accuracy<double>(); }
 TEST(TestDistanceDefault, ManhattanF32) { test_manhattan_accuracy<float>(); }
 TEST(TestDistanceDefault, ManhattanF64) { test_manhattan_accuracy<double>(); }
+TEST(TestDistanceDefault, DotProductF32) { test_dot_product_accuracy<float>(); }
+TEST(TestDistanceDefault, DotProductF64) { test_dot_product_accuracy<double>(); }
+TEST(TestDistanceDefault, NormF32) { test_norm_accuracy<float>(); }
+TEST(TestDistanceDefault, NormF64) { test_norm_accuracy<double>(); }
+TEST(TestDistanceDefault, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
+TEST(TestDistanceDefault, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
 TEST(TestDistanceDefault, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceDefault, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceDefault, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }

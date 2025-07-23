@@ -109,6 +109,30 @@ double norm_f64(const double*, const size_t);
 float norm_f32(const float*, const size_t);
 
 /**
+ * @brief Function to calculate cosine similarity at
+ * 64 bit precision
+ * 
+ * @param vec_a (const double*) Vector A
+ * @param vec_b (const double*) Vector B
+ * @param length (const size_t) length of both vectors
+ * 
+ * @return Value between -1 and 1
+ */
+double cosine_similarity_f64(const double*, const double*, const size_t);
+
+/**
+ * @brief Function to calculate cosine similarity at
+ * 32 bit precision
+ * 
+ * @param vec_a (const float*) Vector A
+ * @param vec_b (const float*) Vector B
+ * @param length (const size_t) length of both vectors
+ * 
+ * @return Value between -1 and 1
+ */
+float cosine_similarity_f32(const float*, const float*, const size_t);
+
+/**
  * @brief Function to calculate euclidean distance between M and N vectors
  * with 64 bit precision
  * 
