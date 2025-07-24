@@ -20,10 +20,15 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
             sum = _mm_add_pd(sum, sq);
         }
 
-        // Horizontal add for SSE
-        __m128d high = _mm_unpackhi_pd(sum, sum);
-        sum = _mm_add_sd(sum, high);
-        double distance = _mm_cvtsd_f64(sum);
+        // Horizontal sum - use SSE3 hadd if available, otherwise manual
+        #ifdef __SSE3__
+            __m128d hadd_result = _mm_hadd_pd(sum, sum);
+            double distance = _mm_cvtsd_f64(hadd_result);
+        #else
+            __m128d high = _mm_unpackhi_pd(sum, sum);
+            sum = _mm_add_sd(sum, high);
+            double distance = _mm_cvtsd_f64(sum);
+        #endif
 
         // Handle remainder
         for(; i < length; i++) {
@@ -45,13 +50,12 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
             sum = _mm256_add_pd(sum, sq);
         }
 
-        // Horizontal add for AVX2
-        __m128d low = _mm256_castpd256_pd128(sum);
-        __m128d high = _mm256_extractf128_pd(sum, 1);
-        low = _mm_add_pd(low, high);
-        high = _mm_unpackhi_pd(low, low);
-        low = _mm_add_sd(low, high);
-        double distance = _mm_cvtsd_f64(low);
+        // Horizontal sum using AVX hadd instructions
+        __m256d hadd1 = _mm256_hadd_pd(sum, sum);
+        __m128d sum_high = _mm256_extractf128_pd(hadd1, 1);
+        __m128d sum_low = _mm256_castpd256_pd128(hadd1);
+        __m128d final_sum = _mm_add_pd(sum_low, sum_high);
+        double distance = _mm_cvtsd_f64(final_sum);
 
         // Handle remainder
         for(; i < length; i++) {
@@ -108,8 +112,12 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
         sum = vaddq_f64(sum, sq);
     }
 
-    // Horizontal add to scalar
-    double distance = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
+    // Horizontal sum - use ARMv8 vaddvq if available, otherwise manual
+    #ifdef __ARM_ARCH_8A
+        double distance = vaddvq_f64(sum);
+    #else
+        double distance = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
+    #endif
 
     // Handle remaining elements (odd length)
     for (; i < length; ++i) {
@@ -146,12 +154,18 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
             sum = _mm_add_ps(sum, sq);
         }
 
-        // Horizontal add for SSE
-        __m128 shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(2, 3, 0, 1));
-        sum = _mm_add_ps(sum, shuf);
-        shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(1, 0, 3, 2));
-        sum = _mm_add_ps(sum, shuf);
-        float distance = _mm_cvtss_f32(sum);
+        // Horizontal sum - use SSE3 hadd if available, otherwise manual
+        #ifdef __SSE3__
+            __m128 hadd1 = _mm_hadd_ps(sum, sum);
+            __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
+            float distance = _mm_cvtss_f32(hadd2);
+        #else
+            __m128 shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(2, 3, 0, 1));
+            sum = _mm_add_ps(sum, shuf);
+            shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(1, 0, 3, 2));
+            sum = _mm_add_ps(sum, shuf);
+            float distance = _mm_cvtss_f32(sum);
+        #endif
 
         // Handle remainder
         for(; i < length; i++) {
@@ -173,15 +187,13 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
             sum = _mm256_add_ps(sum, sq);
         }
 
-        // Horizontal add for AVX2
-        __m128 low = _mm256_castps256_ps128(sum);
-        __m128 high = _mm256_extractf128_ps(sum, 1);
-        low = _mm_add_ps(low, high);
-        __m128 shuf = _mm_shuffle_ps(low, low, _MM_SHUFFLE(2, 3, 0, 1));
-        low = _mm_add_ps(low, shuf);
-        shuf = _mm_shuffle_ps(low, low, _MM_SHUFFLE(1, 0, 3, 2));
-        low = _mm_add_ps(low, shuf);
-        float distance = _mm_cvtss_f32(low);
+        // Horizontal sum using AVX hadd instructions
+        __m256 hadd1 = _mm256_hadd_ps(sum, sum);
+        __m256 hadd2 = _mm256_hadd_ps(hadd1, hadd1);
+        __m128 sum_high = _mm256_extractf128_ps(hadd2, 1);
+        __m128 sum_low = _mm256_castps256_ps128(hadd2);
+        __m128 final_sum = _mm_add_ps(sum_low, sum_high);
+        float distance = _mm_cvtss_f32(final_sum);
 
         // Handle remainder
         for(; i < length; i++) {
@@ -237,9 +249,13 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
         sum = vaddq_f32(sum, sq);
     }
 
-    // Horizontal add of 4 float lanes
-    float distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1)
-                   + vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
+    // Horizontal sum - use ARMv8 vaddvq if available, otherwise manual
+    #ifdef __ARM_ARCH_8A
+        float distance = vaddvq_f32(sum);
+    #else
+        float distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1)
+                       + vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
+    #endif
 
     // Tail (scalar loop)
     for (; i < length; ++i) {

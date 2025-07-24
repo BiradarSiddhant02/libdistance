@@ -19,9 +19,15 @@ double dot_product_f64(const double* vec_a, const double* vec_b,
             sum = _mm_add_pd(sum, prod);
         }
 
-        double buffer[2];
-        _mm_store_pd(buffer, sum);
-        double dot = buffer[0] + buffer[1];
+        // Horizontal sum - use SSE3 hadd if available, otherwise manual
+        #ifdef __SSE3__
+            __m128d hadd_result = _mm_hadd_pd(sum, sum);
+            double dot = _mm_cvtsd_f64(hadd_result);
+        #else
+            double buffer[2];
+            _mm_store_pd(buffer, sum);
+            double dot = buffer[0] + buffer[1];
+        #endif
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -39,9 +45,12 @@ double dot_product_f64(const double* vec_a, const double* vec_b,
             sum = _mm256_add_pd(sum, prod);
         }
 
-        double buffer[4];
-        _mm256_store_pd(buffer, sum);
-        double dot = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+        // Horizontal sum using AVX hadd instructions
+        __m256d hadd1 = _mm256_hadd_pd(sum, sum);
+        __m128d sum_high = _mm256_extractf128_pd(hadd1, 1);
+        __m128d sum_low = _mm256_castpd256_pd128(hadd1);
+        __m128d final_sum = _mm_add_pd(sum_low, sum_high);
+        double dot = _mm_cvtsd_f64(final_sum);
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -59,10 +68,8 @@ double dot_product_f64(const double* vec_a, const double* vec_b,
             sum = _mm512_add_pd(sum, prod);            
         }
 
-        double buffer[8];
-        _mm512_store_pd(buffer, sum);
-        double dot = 0.0;
-        for (int j = 0; j < 8; j++) { dot += buffer[j]; }
+        // Horizontal sum using AVX-512 reduce instruction
+        double dot = _mm512_reduce_add_pd(sum);
         
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -90,7 +97,12 @@ double dot_product_f64(const double* vec_a, const double* vec_b,
         sum = vaddq_f64(sum, prod);
     }
 
-    double distance = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
+    // Horizontal sum - use ARMv8 vaddvq if available, otherwise manual
+    #ifdef __ARM_ARCH_8A
+        double distance = vaddvq_f64(sum);
+    #else
+        double distance = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
+    #endif
 
     for (; i < length; i++)
         distance += vec_a[i] * vec_b[i];
@@ -122,9 +134,16 @@ float dot_product_f32(const float* vec_a, const float* vec_b,
             sum = _mm_add_ps(sum, prod);
         }
 
-        float buffer[4];
-        _mm_store_ps(buffer, sum);
-        float dot = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+        // Horizontal sum - use SSE3 hadd if available, otherwise manual
+        #ifdef __SSE3__
+            __m128 hadd1 = _mm_hadd_ps(sum, sum);
+            __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
+            float dot = _mm_cvtss_f32(hadd2);
+        #else
+            float buffer[4];
+            _mm_store_ps(buffer, sum);
+            float dot = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+        #endif
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -142,10 +161,13 @@ float dot_product_f32(const float* vec_a, const float* vec_b,
             sum = _mm256_add_ps(sum, prod);
         }
 
-        float buffer[8];
-        _mm256_store_ps(buffer, sum);
-        float dot = 0.0f;
-        for (int j = 0; j < 8; j++) dot += buffer[j];
+        // Horizontal sum using AVX hadd instructions
+        __m256 hadd1 = _mm256_hadd_ps(sum, sum);
+        __m256 hadd2 = _mm256_hadd_ps(hadd1, hadd1);
+        __m128 sum_high = _mm256_extractf128_ps(hadd2, 1);
+        __m128 sum_low = _mm256_castps256_ps128(hadd2);
+        __m128 final_sum = _mm_add_ps(sum_low, sum_high);
+        float dot = _mm_cvtss_f32(final_sum);
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -163,10 +185,8 @@ float dot_product_f32(const float* vec_a, const float* vec_b,
             sum = _mm512_add_ps(sum, prod);            
         }
 
-        float buffer[16];
-        _mm512_store_ps(buffer, sum);
-        float dot = 0.0f;
-        for (int j = 0; j < 16; j++) { dot += buffer[j]; }
+        // Horizontal sum using AVX-512 reduce instruction
+        float dot = _mm512_reduce_add_ps(sum);
         
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -194,8 +214,13 @@ float dot_product_f32(const float* vec_a, const float* vec_b,
         sum = vaddq_f32(sum, prod);
     }
 
-    float distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1)
-                   + vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
+    // Horizontal sum - use ARMv8 vaddvq if available, otherwise manual
+    #ifdef __ARM_ARCH_8A
+        float distance = vaddvq_f32(sum);
+    #else
+        float distance = vgetq_lane_f32(sum, 0) + vgetq_lane_f32(sum, 1)
+                       + vgetq_lane_f32(sum, 2) + vgetq_lane_f32(sum, 3);
+    #endif
 
     for (; i < length; i++)
         distance += vec_a[i] * vec_b[i];

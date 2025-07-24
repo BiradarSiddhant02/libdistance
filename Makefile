@@ -46,7 +46,7 @@ $(BIN_DIR)/libdistance.so: $(SRC)
 
 ifeq ($(IS_X86_64),x86_64)
 $(BIN_DIR)/libdistance_sse.so: $(SRC)
-	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -DSSE -msse2 -shared $(SRC) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -DSSE -msse3 -shared $(SRC) -o $@ $(LDFLAGS)
 
 $(BIN_DIR)/libdistance_avx2.so: $(SRC)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -DAVX2 -mavx2 -mfma -shared $(SRC) -o $@ $(LDFLAGS)
