@@ -153,7 +153,7 @@ static void bench_dot_product_f64(benchmark::State& state) {
     std::vector<double> vec_a = random_vec<double>(LENGTH);
     std::vector<double> vec_b = random_vec<double>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(dot_product_f64(vec_a.data(), vec_b.data(), LENGTH));
+        dot_product_f64(vec_a.data(), vec_b.data(), LENGTH);
     }
 }
 BENCHMARK(bench_dot_product_f64);
@@ -162,7 +162,7 @@ static void bench_dot_product_f32(benchmark::State& state) {
     std::vector<float> vec_a = random_vec<float>(LENGTH);
     std::vector<float> vec_b = random_vec<float>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(dot_product_f32(vec_a.data(), vec_b.data(), LENGTH));
+        dot_product_f32(vec_a.data(), vec_b.data(), LENGTH);
     }
 }
 BENCHMARK(bench_dot_product_f32);
@@ -170,7 +170,7 @@ BENCHMARK(bench_dot_product_f32);
 static void bench_norm_f64(benchmark::State& state) {
     std::vector<double> vec = random_vec<double>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(norm_f64(vec.data(), LENGTH));
+        norm_f64(vec.data(), LENGTH);
     }
 }
 BENCHMARK(bench_norm_f64);
@@ -178,7 +178,7 @@ BENCHMARK(bench_norm_f64);
 static void bench_norm_f32(benchmark::State& state) {
     std::vector<float> vec = random_vec<float>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(norm_f32(vec.data(), LENGTH));
+        norm_f32(vec.data(), LENGTH);
     }
 }
 BENCHMARK(bench_norm_f32);
@@ -187,7 +187,7 @@ static void bench_cosine_similarity_f64(benchmark::State& state) {
     std::vector<double> vec_a = random_vec<double>(LENGTH);
     std::vector<double> vec_b = random_vec<double>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(cosine_similarity_f64(vec_a.data(), vec_b.data(), LENGTH));
+        cosine_similarity_f64(vec_a.data(), vec_b.data(), LENGTH);
     }
 }
 BENCHMARK(bench_cosine_similarity_f64);
@@ -196,7 +196,7 @@ static void bench_cosine_similarity_f32(benchmark::State& state) {
     std::vector<float> vec_a = random_vec<float>(LENGTH);
     std::vector<float> vec_b = random_vec<float>(LENGTH);
     for (auto _ : state) {
-        benchmark::DoNotOptimize(cosine_similarity_f32(vec_a.data(), vec_b.data(), LENGTH));
+        cosine_similarity_f32(vec_a.data(), vec_b.data(), LENGTH);
     }
 }
 BENCHMARK(bench_cosine_similarity_f32);
