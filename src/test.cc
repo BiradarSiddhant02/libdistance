@@ -89,6 +89,16 @@ precT expected_cosine_similarity(const std::vector<precT>& A, const std::vector<
 }
 
 template <typename precT>
+precT expected_minkowski(const std::vector<precT>& A, const std::vector<precT>& B, precT p) {
+    precT distance = static_cast<precT>(0.0);
+    for (size_t i = 0; i < A.size(); i++) {
+        precT diff = std::abs(A[i] - B[i]);
+        distance += static_cast<precT>(std::pow(diff, p));
+    }
+    return static_cast<precT>(std::pow(distance, static_cast<precT>(1.0) / p));
+}
+
+template <typename precT>
 void test_euclidean_accuracy() {
     static const size_t length = 128;
     std::vector<precT> A = random_vec<precT>(length);
@@ -162,6 +172,34 @@ void test_cosine_similarity_accuracy() {
     ASSERT_NEAR(expected, actual, static_cast<precT>(1e-4));
 }
 
+template<typename precT>
+void test_minkowski_accuracy() {
+    constexpr size_t n = 256;
+    std::vector<precT> a(n), b(n);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<double> dis(-100.0, 100.0);
+    
+    for (size_t i = 0; i < n; ++i) {
+        a[i] = static_cast<precT>(dis(gen));
+        b[i] = static_cast<precT>(dis(gen));
+    }
+    
+    std::vector<precT> p_values = {0.5, 1.0, 1.5, 2.0, 3.0, 4.0};
+    
+    for (precT p : p_values) {
+        precT expected = expected_minkowski(a, b, p);
+        precT actual = (sizeof(precT) == 4) ? 
+            static_cast<precT>(minkowski_f32(reinterpret_cast<const float*>(a.data()), 
+                                           reinterpret_cast<const float*>(b.data()), n, static_cast<float>(p))) :
+            static_cast<precT>(minkowski_f64(reinterpret_cast<const double*>(a.data()), 
+                                           reinterpret_cast<const double*>(b.data()), n, p));
+        
+        // Use relative tolerance based on expected magnitude
+        precT tolerance = expected * ((sizeof(precT) == 4) ? static_cast<precT>(1e-3) : static_cast<precT>(1e-6));
+        EXPECT_NEAR(expected, actual, tolerance) << "Failed for p = " << p;
+    }
+}
+
 template <typename precT>
 void test_multi_euclidean_accuracy() {
     static const size_t length = 64;
@@ -227,6 +265,8 @@ TEST(TestDistanceSSE, NormF32) { test_norm_accuracy<float>(); }
 TEST(TestDistanceSSE, NormF64) { test_norm_accuracy<double>(); }
 TEST(TestDistanceSSE, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
 TEST(TestDistanceSSE, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
+TEST(TestDistanceSSE, MinkowskiF32) { test_minkowski_accuracy<float>(); }
+TEST(TestDistanceSSE, MinkowskiF64) { test_minkowski_accuracy<double>(); }
 TEST(TestDistanceSSE, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceSSE, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceSSE, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -242,6 +282,8 @@ TEST(TestDistanceAVX2, NormF32) { test_norm_accuracy<float>(); }
 TEST(TestDistanceAVX2, NormF64) { test_norm_accuracy<double>(); }
 TEST(TestDistanceAVX2, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
 TEST(TestDistanceAVX2, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
+TEST(TestDistanceAVX2, MinkowskiF32) { test_minkowski_accuracy<float>(); }
+TEST(TestDistanceAVX2, MinkowskiF64) { test_minkowski_accuracy<double>(); }
 TEST(TestDistanceAVX2, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX2, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX2, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -257,6 +299,8 @@ TEST(TestDistanceAVX512, NormF32) { test_norm_accuracy<float>(); }
 TEST(TestDistanceAVX512, NormF64) { test_norm_accuracy<double>(); }
 TEST(TestDistanceAVX512, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
 TEST(TestDistanceAVX512, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
+TEST(TestDistanceAVX512, MinkowskiF32) { test_minkowski_accuracy<float>(); }
+TEST(TestDistanceAVX512, MinkowskiF64) { test_minkowski_accuracy<double>(); }
 TEST(TestDistanceAVX512, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceAVX512, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceAVX512, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }
@@ -272,6 +316,8 @@ TEST(TestDistanceDefault, NormF32) { test_norm_accuracy<float>(); }
 TEST(TestDistanceDefault, NormF64) { test_norm_accuracy<double>(); }
 TEST(TestDistanceDefault, CosineSimilarityF32) { test_cosine_similarity_accuracy<float>(); }
 TEST(TestDistanceDefault, CosineSimilarityF64) { test_cosine_similarity_accuracy<double>(); }
+TEST(TestDistanceDefault, MinkowskiF32) { test_minkowski_accuracy<float>(); }
+TEST(TestDistanceDefault, MinkowskiF64) { test_minkowski_accuracy<double>(); }
 TEST(TestDistanceDefault, MultiEuclideanF32) { test_multi_euclidean_accuracy<float>(); }
 TEST(TestDistanceDefault, MultiEuclideanF64) { test_multi_euclidean_accuracy<double>(); }
 TEST(TestDistanceDefault, MultiManhattanF32) { test_multi_manhattan_accuracy<float>(); }

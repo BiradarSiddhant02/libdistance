@@ -201,4 +201,95 @@ static void bench_cosine_similarity_f32(benchmark::State& state) {
 }
 BENCHMARK(bench_cosine_similarity_f32);
 
+// Minkowski distance benchmarks with different p-values
+static void bench_minkowski_f64_p0_5(benchmark::State& state) {
+    std::vector<double> vec_a = random_vec<double>(LENGTH);
+    std::vector<double> vec_b = random_vec<double>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f64(vec_a.data(), vec_b.data(), LENGTH, 0.5);
+    }
+}
+BENCHMARK(bench_minkowski_f64_p0_5);
+
+static void bench_minkowski_f64_p1_0(benchmark::State& state) {
+    std::vector<double> vec_a = random_vec<double>(LENGTH);
+    std::vector<double> vec_b = random_vec<double>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f64(vec_a.data(), vec_b.data(), LENGTH, 1.0);
+    }
+}
+BENCHMARK(bench_minkowski_f64_p1_0);
+
+static void bench_minkowski_f64_p1_5(benchmark::State& state) {
+    std::vector<double> vec_a = random_vec<double>(LENGTH);
+    std::vector<double> vec_b = random_vec<double>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f64(vec_a.data(), vec_b.data(), LENGTH, 1.5);
+    }
+}
+BENCHMARK(bench_minkowski_f64_p1_5);
+
+static void bench_minkowski_f64_p2_0(benchmark::State& state) {
+    std::vector<double> vec_a = random_vec<double>(LENGTH);
+    std::vector<double> vec_b = random_vec<double>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f64(vec_a.data(), vec_b.data(), LENGTH, 2.0);
+    }
+}
+BENCHMARK(bench_minkowski_f64_p2_0);
+
+static void bench_minkowski_f64_p3_0(benchmark::State& state) {
+    std::vector<double> vec_a = random_vec<double>(LENGTH);
+    std::vector<double> vec_b = random_vec<double>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f64(vec_a.data(), vec_b.data(), LENGTH, 3.0);
+    }
+}
+BENCHMARK(bench_minkowski_f64_p3_0);
+
+static void bench_minkowski_f32_p0_5(benchmark::State& state) {
+    std::vector<float> vec_a = random_vec<float>(LENGTH);
+    std::vector<float> vec_b = random_vec<float>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f32(vec_a.data(), vec_b.data(), LENGTH, 0.5f);
+    }
+}
+BENCHMARK(bench_minkowski_f32_p0_5);
+
+static void bench_minkowski_f32_p1_0(benchmark::State& state) {
+    std::vector<float> vec_a = random_vec<float>(LENGTH);
+    std::vector<float> vec_b = random_vec<float>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f32(vec_a.data(), vec_b.data(), LENGTH, 1.0f);
+    }
+}
+BENCHMARK(bench_minkowski_f32_p1_0);
+
+static void bench_minkowski_f32_p1_5(benchmark::State& state) {
+    std::vector<float> vec_a = random_vec<float>(LENGTH);
+    std::vector<float> vec_b = random_vec<float>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f32(vec_a.data(), vec_b.data(), LENGTH, 1.5f);
+    }
+}
+BENCHMARK(bench_minkowski_f32_p1_5);
+
+static void bench_minkowski_f32_p2_0(benchmark::State& state) {
+    std::vector<float> vec_a = random_vec<float>(LENGTH);
+    std::vector<float> vec_b = random_vec<float>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f32(vec_a.data(), vec_b.data(), LENGTH, 2.0f);
+    }
+}
+BENCHMARK(bench_minkowski_f32_p2_0);
+
+static void bench_minkowski_f32_p3_0(benchmark::State& state) {
+    std::vector<float> vec_a = random_vec<float>(LENGTH);
+    std::vector<float> vec_b = random_vec<float>(LENGTH);
+    for (auto _ : state) {
+        minkowski_f32(vec_a.data(), vec_b.data(), LENGTH, 3.0f);
+    }
+}
+BENCHMARK(bench_minkowski_f32_p3_0);
+
 BENCHMARK_MAIN();

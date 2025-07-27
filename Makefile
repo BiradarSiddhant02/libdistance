@@ -19,7 +19,7 @@ SRC_DIR = src
 INCLUDE_DIR = include
 
 
-SRC = $(SRC_DIR)/euclidean.c $(SRC_DIR)/manhattan.c $(SRC_DIR)/cosine.c
+SRC = $(SRC_DIR)/euclidean.c $(SRC_DIR)/manhattan.c $(SRC_DIR)/cosine.c $(SRC_DIR)/minkowski.c
 
 ifeq ($(IS_X86_64),x86_64)
 OBJS = $(BIN_DIR)/libdistance.so $(BIN_DIR)/libdistance_sse.so $(BIN_DIR)/libdistance_avx2.so $(BIN_DIR)/libdistance_avx512.so

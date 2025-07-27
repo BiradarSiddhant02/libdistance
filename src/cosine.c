@@ -19,15 +19,9 @@ double dot_product_f64(const double* vec_a, const double* vec_b,
             sum = _mm_add_pd(sum, prod);
         }
 
-        // Horizontal sum - use SSE3 hadd if available, otherwise manual
-        #ifdef __SSE3__
-            __m128d hadd_result = _mm_hadd_pd(sum, sum);
-            double dot = _mm_cvtsd_f64(hadd_result);
-        #else
-            double buffer[2];
-            _mm_store_pd(buffer, sum);
-            double dot = buffer[0] + buffer[1];
-        #endif
+        // Horizontal sum using SSE3 hadd instruction
+        __m128d hadd_result = _mm_hadd_pd(sum, sum);
+        double dot = _mm_cvtsd_f64(hadd_result);
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];
@@ -134,16 +128,10 @@ float dot_product_f32(const float* vec_a, const float* vec_b,
             sum = _mm_add_ps(sum, prod);
         }
 
-        // Horizontal sum - use SSE3 hadd if available, otherwise manual
-        #ifdef __SSE3__
-            __m128 hadd1 = _mm_hadd_ps(sum, sum);
-            __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
-            float dot = _mm_cvtss_f32(hadd2);
-        #else
-            float buffer[4];
-            _mm_store_ps(buffer, sum);
-            float dot = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-        #endif
+        // Horizontal sum using SSE3 hadd instructions
+        __m128 hadd1 = _mm_hadd_ps(sum, sum);
+        __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
+        float dot = _mm_cvtss_f32(hadd2);
 
         for (; i < length; i++)
             dot += vec_a[i] * vec_b[i];

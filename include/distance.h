@@ -133,6 +133,32 @@ double cosine_similarity_f64(const double*, const double*, const size_t);
 float cosine_similarity_f32(const float*, const float*, const size_t);
 
 /**
+ * @brief Function to calculate minkowski metric of two vectors
+ * at 64 bit precision
+ * 
+ * @param vec_a (const double*) Vector A
+ * @param vec_b (const double*) Vector B
+ * @param length (const size_t) length of both the vectors
+ * @param p (const double) Minkowski metric
+ * 
+ * @return Minkowski distance between Vector A and Vector B
+ */
+double minkowski_f64(const double*, const double*, const size_t, const double);
+
+/**
+ * @brief Function to calculate minkowski metric of two vectors
+ * at 32 bit precision
+ * 
+ * @param vec_a (const float*) Vector A
+ * @param vec_b (const float*) Vector B
+ * @param length (const size_t) length of both the vectors
+ * @param p (const float) Minkowski metric
+ * 
+ * @return Minkowski distance between Vector A and Vector B
+ */
+float minkowski_f32(const float*, const float*, const size_t, const float);
+
+/**
  * @brief Function to calculate euclidean distance between M and N vectors
  * with 64 bit precision
  * 

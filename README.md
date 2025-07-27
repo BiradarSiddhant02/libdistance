@@ -1,14 +1,14 @@
 # libdistance
-High-performance library for calculating distances and mathematical operations between N-dimensional vectors. Supports x86 SIMD instructions (SSE, AVX2, AVX512) with OpenMP parallelism and ARM (aarch64) NEON optimizations.
+High-performance library for calculating distances and mathematical operations between N-dimensional vectors. Supports x86 SIMD instructions (SSE3, AVX2, AVX512) with OpenMP parallelism and ARM (aarch64) NEON optimizations.
 
 ## Features
-- **Distance Functions**: Euclidean and Manhattan distance calculations
+- **Distance Functions**: Euclidean, Manhattan, and **Minkowski** distance calculations with configurable p-norm
 - **Mathematical Functions**: Dot product, vector norm (L2), and cosine similarity
-- **High Performance**: SIMD-optimized implementations (SSE, AVX2, AVX512) for x86_64
+- **High Performance**: SIMD-optimized implementations (SSE3, AVX2, AVX512) for x86_64
 - **ARM Support**: NEON-optimized and portable fallback implementations for aarch64
 - **Multi-threading**: OpenMP parallelization for batch operations
-- **Comprehensive Testing**: GoogleTest unit tests with accuracy validation
-- **Performance Benchmarking**: Google Benchmark integration for all architectures
+- **Comprehensive Testing**: GoogleTest unit tests with accuracy validation across all SIMD variants
+- **Performance Benchmarking**: Google Benchmark integration for all architectures and distance metrics
 - **Easy Integration**: Simple C API with installation support
 
 ## Directory Structure
@@ -17,10 +17,11 @@ libdistance/
 ├── include/distance.h     # Public API header
 ├── src/                   # Source files
 │   ├── euclidean.c        # Euclidean distance implementations
-│   ├── manhattan.c        # Manhattan distance implementations  
+│   ├── manhattan.c        # Manhattan distance implementations
+│   ├── minkowski.c        # Minkowski distance implementations (generalized p-norm)
 │   ├── cosine.c          # Dot product, norm, cosine similarity
-│   ├── test.cc           # Comprehensive unit tests
-│   └── benchmark.cc      # Performance benchmarks
+│   ├── test.cc           # Comprehensive unit tests (16 test cases per architecture)
+│   └── benchmark.cc      # Performance benchmarks (20+ benchmarks per architecture)
 ├── bin/                  # Build outputs
 ├── third-party/          # Dependencies (GoogleTest)
 └── Makefile             # Build system
@@ -117,6 +118,10 @@ float  euclidean_f32(const float* vec_a, const float* vec_b, size_t length);
 // Manhattan distance (L1 norm)  
 double manhattan_f64(const double* vec_a, const double* vec_b, size_t length);
 float  manhattan_f32(const float* vec_a, const float* vec_b, size_t length);
+
+// Minkowski distance (generalized Lp norm) - NEW!
+double minkowski_f64(const double* vec_a, const double* vec_b, size_t length, double p);
+float  minkowski_f32(const float* vec_a, const float* vec_b, size_t length, float p);
 ```
 
 ### Mathematical Functions
@@ -154,6 +159,7 @@ float**  multi_manhattan_f32(const float** vecs_a, const float** vecs_b,
 - `vec`: Input vector for single-vector operations
 - `vecs_a`, `vecs_b`: Arrays of vector pointers for batch operations
 - `length`: Vector dimension (number of elements)
+- `p`: P-norm parameter for Minkowski distance (e.g., 1.0=Manhattan, 2.0=Euclidean, 0.5=fractional)
 - `M`, `N`: Number of vectors in each batch (M × N distance matrix)
 - `n_threads`: Number of OpenMP threads for parallelization
 
@@ -161,10 +167,10 @@ float**  multi_manhattan_f32(const float** vecs_a, const float** vecs_b,
 
 ### SIMD Optimizations
 - **Default**: Portable C implementation, works on all architectures
-- **SSE**: 128-bit SIMD, processes 2 doubles or 4 floats per instruction
-- **AVX2**: 256-bit SIMD, processes 4 doubles or 8 floats per instruction  
-- **AVX512**: 512-bit SIMD, processes 8 doubles or 16 floats per instruction
-- **ARM NEON**: 128-bit SIMD optimizations for aarch64
+- **SSE3**: 128-bit SIMD with horizontal add instructions, processes 2 doubles or 4 floats per instruction
+- **AVX2**: 256-bit SIMD with FMA support, processes 4 doubles or 8 floats per instruction  
+- **AVX512**: 512-bit SIMD with reduce operations, processes 8 doubles or 16 floats per instruction
+- **ARM NEON**: 128-bit SIMD optimizations for aarch64 with conditional ARMv8 features
 
 ### Multi-threading
 - OpenMP parallelization for batch operations
@@ -187,6 +193,7 @@ int main() {
     // Calculate distances
     double eucl_dist = euclidean_f64(vec_a, vec_b, length);
     double manh_dist = manhattan_f64(vec_a, vec_b, length);
+    double mink_dist = minkowski_f64(vec_a, vec_b, length, 3.0);  // L3 norm
     
     // Calculate mathematical operations
     double dot_prod = dot_product_f64(vec_a, vec_b, length);
@@ -195,6 +202,7 @@ int main() {
     
     printf("Euclidean distance: %f\n", eucl_dist);
     printf("Manhattan distance: %f\n", manh_dist);
+    printf("Minkowski distance (p=3): %f\n", mink_dist);
     printf("Dot product: %f\n", dot_prod);
     printf("Norm of vec_a: %f\n", norm_a);
     printf("Cosine similarity: %f\n", cosine_sim);
@@ -259,7 +267,7 @@ gcc -o example example.c -ldistance -lm
 gcc -o example example.c $(pkg-config --cflags --libs libdistance)
 ```
 
-## Testing and Validation
+### Testing and Validation
 
 ### Unit Tests
 The library includes comprehensive GoogleTest-based unit tests:
@@ -267,13 +275,44 @@ The library includes comprehensive GoogleTest-based unit tests:
 - **Edge Cases**: Handle zero vectors, single elements, large dimensions
 - **Cross-Architecture**: Ensure consistent results across all SIMD implementations
 - **Precision Tests**: Verify both float32 and float64 accuracy
+- **Minkowski Tests**: Multiple p-values tested (0.5, 1.0, 1.5, 2.0, 3.0, 4.0) with appropriate tolerances
 
 ### Benchmarking
 Google Benchmark integration provides:
-- **Performance Measurement**: Throughput and latency analysis
+- **Performance Measurement**: Throughput and latency analysis for all distance metrics
 - **SIMD Comparison**: Performance gains across different instruction sets
+- **Minkowski Benchmarks**: Performance testing across different p-values
 - **Scaling Analysis**: Multi-threading efficiency evaluation
 - **Architecture Profiling**: x86_64 vs ARM performance characteristics
+
+### Benchmark Results Overview
+The library includes 20+ benchmark cases per architecture:
+- **Single-vector functions**: euclidean, manhattan, minkowski (5 p-values), dot_product, norm, cosine_similarity
+- **Multi-vector functions**: batch euclidean and manhattan computations
+- **Precision variants**: Both float32 and float64 for all functions
+- **Minkowski p-value analysis**: Performance impact of different p-norm values (0.5, 1.0, 1.5, 2.0, 3.0)
+
+## Advanced Features
+
+### Minkowski Distance
+The Minkowski distance is a generalization of many common distance metrics:
+- **p = 0.5**: Fractional norm (computationally intensive)
+- **p = 1.0**: Manhattan distance (L1 norm)
+- **p = 1.5**: Custom intermediate norm
+- **p = 2.0**: Euclidean distance (L2 norm)  
+- **p = 3.0+**: Higher-order norms for specialized applications
+
+All implementations use optimized horizontal sum intrinsics:
+- **SSE3**: `_mm_hadd_ps/pd` for efficient vector reduction
+- **AVX2**: `_mm256_hadd_ps/pd` with 256-bit operations
+- **AVX512**: `_mm512_reduce_add_ps/pd` for maximum throughput
+- **ARM NEON**: `vaddvq_f32/f64` where supported
+
+### SIMD Implementation Details
+- **Forced SSE3**: All SSE implementations use `hadd` instructions without conditional compilation
+- **Horizontal Summation**: Optimized reduction operations for all architectures
+- **Memory Alignment**: Proper vector alignment for maximum SIMD efficiency
+- **Loop Unrolling**: Optimized inner loops for each SIMD variant
 
 ## Requirements
 - **Compiler**: GCC 7+ or Clang 6+ with C11 and C++17 support  

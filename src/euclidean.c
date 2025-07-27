@@ -20,15 +20,9 @@ double euclidean_f64(const double* vec_a, const double* vec_b,
             sum = _mm_add_pd(sum, sq);
         }
 
-        // Horizontal sum - use SSE3 hadd if available, otherwise manual
-        #ifdef __SSE3__
-            __m128d hadd_result = _mm_hadd_pd(sum, sum);
-            double distance = _mm_cvtsd_f64(hadd_result);
-        #else
-            __m128d high = _mm_unpackhi_pd(sum, sum);
-            sum = _mm_add_sd(sum, high);
-            double distance = _mm_cvtsd_f64(sum);
-        #endif
+        // Horizontal sum using SSE3 hadd instruction
+        __m128d hadd_result = _mm_hadd_pd(sum, sum);
+        double distance = _mm_cvtsd_f64(hadd_result);
 
         // Handle remainder
         for(; i < length; i++) {
@@ -154,18 +148,10 @@ float euclidean_f32(const float* vec_a, const float* vec_b,
             sum = _mm_add_ps(sum, sq);
         }
 
-        // Horizontal sum - use SSE3 hadd if available, otherwise manual
-        #ifdef __SSE3__
-            __m128 hadd1 = _mm_hadd_ps(sum, sum);
-            __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
-            float distance = _mm_cvtss_f32(hadd2);
-        #else
-            __m128 shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(2, 3, 0, 1));
-            sum = _mm_add_ps(sum, shuf);
-            shuf = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(1, 0, 3, 2));
-            sum = _mm_add_ps(sum, shuf);
-            float distance = _mm_cvtss_f32(sum);
-        #endif
+        // Horizontal sum using SSE3 hadd instructions
+        __m128 hadd1 = _mm_hadd_ps(sum, sum);
+        __m128 hadd2 = _mm_hadd_ps(hadd1, hadd1);
+        float distance = _mm_cvtss_f32(hadd2);
 
         // Handle remainder
         for(; i < length; i++) {
