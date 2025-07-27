@@ -291,10 +291,7 @@ Google Benchmark integration provides:
 5. Run benchmarks to verify performance: `make bench`
 6. Submit a pull request
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Author
 **Siddhant Biradar**  
-Email: [your-email@example.com]  
+Email: [siddhant.biradar.pes@gmail.com]  
 GitHub: [@BiradarSiddhant02](https://github.com/BiradarSiddhant02)
